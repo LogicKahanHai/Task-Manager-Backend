@@ -1,0 +1,79 @@
+import {
+  ConflictException,
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
+import { CreateUserDto } from './dto/create-user.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
+import { Repository } from 'typeorm';
+import { User } from './entities/user.entity';
+import { InjectRepository } from '@nestjs/typeorm';
+import { HashingService } from 'src/utils/services/hashing.service';
+
+@Injectable()
+export class UserService {
+  constructor(
+    @InjectRepository(User)
+    private readonly userRepo: Repository<User>,
+    private readonly hashingService: HashingService,
+  ) {}
+
+  async create(createUserDto: CreateUserDto) {
+    try {
+      const hashedPassword = await this.hashingService.hashPassword(
+        createUserDto.password,
+      );
+      createUserDto.password = hashedPassword;
+      const user = this.userRepo.create(createUserDto);
+      return await this.userRepo.save(user);
+    } catch (error) {
+      if (error.code === '23505') {
+        throw new ConflictException('User with this email already exists');
+      }
+      throw new InternalServerErrorException('Failed to create user');
+    }
+  }
+
+  // async findAll() {
+  //   return await this.userRepo.find();
+  // }
+
+  async findOne(id: string) {
+    // FIXME: Sanitize id input to prevent SQL injection
+    return await this.userRepo.findOne({ where: { id } });
+  }
+
+  async update(id: string, updateUserDto: UpdateUserDto) {
+    const user = await this.findOne(id);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    Object.assign(user, updateUserDto);
+
+    return await this.userRepo.save(user);
+  }
+
+  async removeUser(id: string) {
+    const user = await this.findOne(id);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    return await this.userRepo.remove(user);
+  }
+
+  async findByEmail(email: string): Promise<User | null> {
+    return await this.userRepo.findOne({ where: { email } });
+  }
+
+  async logoutUser(id: string): Promise<boolean> {
+    const user = await this.findOne(id);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    user.refreshToken = null;
+    return true;
+  }
+}
