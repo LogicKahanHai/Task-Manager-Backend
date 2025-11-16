@@ -4,7 +4,6 @@ import { CreateUserDto } from 'src/user/dto/create-user.dto';
 import { User } from 'src/user/entities/user.entity';
 import { UserService } from 'src/user/user.service';
 import { HashingService } from 'src/utils/services/hashing.service';
-import { JwtHelperService } from 'src/utils/services/jwt.helper.service';
 
 @Injectable()
 export class AuthService {
@@ -25,13 +24,21 @@ export class AuthService {
     return null;
   }
 
-  async registerUser(createUserDto: CreateUserDto): Promise<User> {
-    return await this.userService.create(createUserDto);
+  async registerUser(createUserDto: CreateUserDto) {
+    const user = await this.userService.create(createUserDto);
+    const payload = { id: user.id };
+    return {
+      ...user,
+      access_token: this.jwtService.sign(payload),
+    };
   }
 
   login(user: User) {
     const payload = { id: user.id };
 
-    return { access_token: this.jwtService.sign(payload) };
+    return {
+      ...user,
+      access_token: this.jwtService.sign(payload),
+    };
   }
 }

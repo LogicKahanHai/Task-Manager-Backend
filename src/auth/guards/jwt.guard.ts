@@ -29,7 +29,9 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
     err: any,
     user: any,
     info: any,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     context: ExecutionContext,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     status?: any,
   ): TUser {
     if (err || !user) {

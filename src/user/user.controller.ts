@@ -1,9 +1,20 @@
-import { Controller, Get, Body, Patch, Delete, Req } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Body,
+  Patch,
+  Delete,
+  Req,
+  UseInterceptors,
+} from '@nestjs/common';
 import { UserService } from './user.service';
 import { UpdateUserDto } from './dto/update-user.dto';
 import type { AuthenticatedRequest } from 'src/utils/types/authenticated.request.type';
+import { ResponseInterceptor } from 'src/utils/interceptors/response.interceptor';
+import { UserResponseDto } from './dto/response.dto';
 
 @Controller('user')
+@UseInterceptors(new ResponseInterceptor(UserResponseDto))
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
