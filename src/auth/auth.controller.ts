@@ -3,15 +3,17 @@ import { LocalAuthGuard } from './guards/local.guard';
 import type { AuthenticatedRequest } from 'src/utils/types/authenticated.request.type';
 import { CreateUserDto } from 'src/user/dto/create-user.dto';
 import { AuthService } from './auth.service';
+import { Public } from './decorators/public.decorator';
 
 @Controller('auth')
+@Public()
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Post('login')
   @UseGuards(LocalAuthGuard)
   login(@Request() req: AuthenticatedRequest) {
-    return req.user;
+    return this.authService.login(req.user);
   }
 
   @Post('register')

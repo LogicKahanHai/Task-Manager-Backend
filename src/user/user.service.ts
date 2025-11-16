@@ -28,6 +28,7 @@ export class UserService {
       const user = this.userRepo.create(createUserDto);
       return await this.userRepo.save(user);
     } catch (error) {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       if (error.code === '23505') {
         throw new ConflictException('User with this email already exists');
       }
