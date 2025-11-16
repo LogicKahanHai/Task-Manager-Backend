@@ -6,6 +6,8 @@ import {
   Delete,
   Req,
   UseInterceptors,
+  NotFoundException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -29,8 +31,15 @@ export class UserController {
   // }
 
   @Get()
-  findOne(@Req() req: AuthenticatedRequest) {
-    return this.userService.findOne(req.user.id);
+  async findOne(@Req() req: AuthenticatedRequest) {
+    const user = await this.userService.findOne(req.user.id);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    if (!user.refreshToken) {
+      throw new UnauthorizedException('Please log in again');
+    }
+    return user;
   }
 
   @Patch()

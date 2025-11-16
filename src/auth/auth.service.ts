@@ -1,8 +1,10 @@
 import { Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { CreateUserDto } from 'src/user/dto/create-user.dto';
 import { User } from 'src/user/entities/user.entity';
 import { UserService } from 'src/user/user.service';
+import { Env } from 'src/utils/environment';
 import { HashingService } from 'src/utils/services/hashing.service';
 
 @Injectable()
@@ -11,6 +13,7 @@ export class AuthService {
     private readonly hashingService: HashingService,
     private readonly userService: UserService,
     private readonly jwtService: JwtService,
+    private readonly configService: ConfigService,
   ) {}
 
   async validateUser(email: string, password: string): Promise<User | null> {
@@ -26,19 +29,48 @@ export class AuthService {
 
   async registerUser(createUserDto: CreateUserDto) {
     const user = await this.userService.create(createUserDto);
-    const payload = { id: user.id };
+    const tokens = await this.generateTokens(user.id);
     return {
       ...user,
-      access_token: this.jwtService.sign(payload),
+      ...tokens,
     };
   }
 
-  login(user: User) {
-    const payload = { id: user.id };
+  async login(user: User) {
+    const tokens = await this.generateTokens(user.id);
+    console.log('user login:', user.id);
+    console.log('Generated tokens for user login:', tokens);
 
     return {
       ...user,
-      access_token: this.jwtService.sign(payload),
+      ...tokens,
     };
+  }
+
+  private async generateTokens(
+    userId: string,
+  ): Promise<{ access_token: string; refresh_token: string }> {
+    const payload = { id: userId };
+
+    const accessToken = await this.jwtService.signAsync(payload, {
+      expiresIn: this.configService.get(Env.jwt.access.expire),
+      secret: this.configService.get<string>(Env.jwt.access.secret),
+    });
+
+    const refreshToken = await this.jwtService.signAsync(payload, {
+      expiresIn: this.configService.get(Env.jwt.refresh.expire),
+      secret: this.configService.get<string>(Env.jwt.refresh.secret),
+    });
+
+    const hashedRefreshToken =
+      await this.hashingService.hashPassword(refreshToken);
+
+    await this.userService.saveRefreshToken(userId, hashedRefreshToken);
+
+    return { access_token: accessToken, refresh_token: refreshToken };
+  }
+
+  async logout(id: string) {
+    return { logout: await this.userService.logoutUser(id) };
   }
 }

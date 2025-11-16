@@ -69,12 +69,23 @@ export class UserService {
     return await this.userRepo.findOne({ where: { email } });
   }
 
+  async saveRefreshToken(id: string, refreshToken: string): Promise<boolean> {
+    const user = await this.findOne(id);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    user.refreshToken = refreshToken;
+    await this.userRepo.save(user);
+    return true;
+  }
+
   async logoutUser(id: string): Promise<boolean> {
     const user = await this.findOne(id);
     if (!user) {
       throw new NotFoundException('User not found');
     }
     user.refreshToken = null;
+    await this.userRepo.save(user);
     return true;
   }
 }

@@ -10,4 +10,6 @@ export class AuthResponseDto {
   access_token: string;
   @Expose()
   refresh_token: string;
+  @Expose()
+  logout: boolean;
 }
