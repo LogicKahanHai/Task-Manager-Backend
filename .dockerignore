@@ -1,0 +1,10 @@
+node_modules
+dist
+.prettierrc
+.github
+.git
+.gitignore
+test
+Dockerfile
+README.md
+.env.development

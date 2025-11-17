@@ -30,7 +30,7 @@ import { Task } from './task/entities/task.entity';
         password: configService.getOrThrow<string>(Env.db.password),
         database: configService.getOrThrow<string>(Env.db.database),
         entities: [User, Task],
-        synchronize: process.env.NODE_ENV === 'development',
+        synchronize: false,
       }),
     }),
     UserModule,

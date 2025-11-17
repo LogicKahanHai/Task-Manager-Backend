@@ -1,0 +1,65 @@
+services:
+  db:
+    container_name: task-manager-database
+    image: postgres:13
+    environment:
+      POSTGRES_USER: '${TASK_MANAGER_DB_USER}'
+      POSTGRES_PASSWORD: '${TASK_MANAGER_DB_PASSWORD}'
+      POSTGRES_DB: '${TASK_MANAGER_DB_NAME:-demo}'
+      PGDATA: /var/lib/postgresql/data/pgdata
+    expose:
+      - '5432'
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - internal
+    healthcheck:
+      test:
+        [
+          'CMD-SHELL',
+          'pg_isready -U ${TASK_MANAGER_DB_USER} -d ${TASK_MANAGER_DB_NAME:-demo}',
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  migration:
+    container_name: task-manager-migration
+    build:
+      context: .
+      target: migration
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_USERNAME: '${TASK_MANAGER_DB_USER}'
+      DB_PASSWORD: '${TASK_MANAGER_DB_PASSWORD}'
+      DB_DATABASE: '${TASK_MANAGER_DB_NAME:-demo}'
+    command: npm run migration:run
+    networks:
+      - internal
+    restart: 'no'
+
+  backend:
+    container_name: task-manager-backend
+    build:
+      context: .
+      target: production
+    # restart: unless-stopped
+    ports:
+      - '${TASK_MANAGER_PORT}:3000'
+    depends_on:
+      migration:
+        condition: service_completed_successfully
+      db:
+        condition: service_healthy
+    networks:
+      - internal
+volumes:
+  pgdata:
+
+networks:
+  internal:
+    driver: bridge
