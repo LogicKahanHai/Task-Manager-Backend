@@ -48,6 +48,11 @@ export class TaskController {
     return this.taskService.update(id, updateTaskDto, req.user.id);
   }
 
+  @Patch(':id/complete')
+  completeTask(@Req() req: AuthenticatedRequest, @Param('id') id: string) {
+    return this.taskService.update(id, { isCompleted: true }, req.user.id);
+  }
+
   @Delete(':id')
   remove(@Req() req: AuthenticatedRequest, @Param('id') id: string) {
     return this.taskService.remove(id, req.user.id);
