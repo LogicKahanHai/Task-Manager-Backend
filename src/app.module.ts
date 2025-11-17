@@ -10,6 +10,7 @@ import { AuthModule } from './auth/auth.module';
 import { APP_GUARD } from '@nestjs/core';
 import { JwtAccessAuthGuard } from './auth/guards/jwt-access.guard';
 import { TaskModule } from './task/task.module';
+import { Task } from './task/entities/task.entity';
 
 @Module({
   imports: [
@@ -28,7 +29,7 @@ import { TaskModule } from './task/task.module';
         username: configService.getOrThrow<string>(Env.db.username),
         password: configService.getOrThrow<string>(Env.db.password),
         database: configService.getOrThrow<string>(Env.db.database),
-        entities: [User],
+        entities: [User, Task],
         synchronize: process.env.NODE_ENV === 'development',
       }),
     }),

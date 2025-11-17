@@ -42,7 +42,8 @@ export class UserService {
 
   async findOne(id: string) {
     // FIXME: Sanitize id input to prevent SQL injection
-    return await this.userRepo.findOne({ where: { id } });
+    id = id.replace(/[^a-zA-Z0-9-]/g, '');
+    return await this.userRepo.findOne({ where: { id }, relations: ['tasks'] });
   }
 
   async update(id: string, updateUserDto: UpdateUserDto) {

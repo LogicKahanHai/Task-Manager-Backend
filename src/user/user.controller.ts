@@ -31,15 +31,8 @@ export class UserController {
   // }
 
   @Get()
-  async findOne(@Req() req: AuthenticatedRequest) {
-    const user = await this.userService.findOne(req.user.id);
-    if (!user) {
-      throw new NotFoundException('User not found');
-    }
-    if (!user.refreshToken) {
-      throw new UnauthorizedException('Please log in again');
-    }
-    return user;
+  findOne(@Req() req: AuthenticatedRequest) {
+    return req.user;
   }
 
   @Patch()
