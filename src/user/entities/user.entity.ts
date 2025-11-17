@@ -1,4 +1,5 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Task } from 'src/task/entities/task.entity';
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity({ name: 'users' })
 export class User {
@@ -11,6 +12,12 @@ export class User {
   @Column()
   password: string;
 
-  @Column({ nullable: true, type: 'text' })
+  @Column({ nullable: true, type: 'text', name: 'refresh_token' })
   refreshToken: string | null;
+
+  @OneToMany(() => Task, (task) => task.user, {
+    cascade: true,
+    onDelete: 'CASCADE',
+  })
+  tasks: Task[];
 }
