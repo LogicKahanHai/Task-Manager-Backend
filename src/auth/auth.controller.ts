@@ -40,7 +40,6 @@ export class AuthController {
   @UseGuards(JwtRefreshAuthGuard)
   @Public()
   refreshToken(@Request() req: AuthenticatedRequest) {
-    console.log('Refreshing token for user:', req.user);
     return this.authService.login(req.user);
   }
 
